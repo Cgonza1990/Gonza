@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 export type ActivityType = 'letter' | 'phonics' | 'spelling' | 'sight';
+export type WordCategory = 'sight' | 'cvc' | 'phonics';
 
 export type ChildProgress = {
   stars: number;
@@ -23,6 +24,34 @@ export type Challenge = {
   choices: string[];
   answer: string;
   voice: string;
+  category: WordCategory;
+  segmentation?: string;
+  sentence: string;
+};
+
+export type WordRecord = {
+  word: string;
+  category: WordCategory;
+  unlocked: boolean;
+  completedCount: number;
+  missedCount: number;
+  mastered: boolean;
+  lastPracticedAt: string;
+  phonicsSegmentation?: string;
+};
+
+export type ReadingJournal = {
+  unlockedWords: string[];
+  completedWords: string[];
+  missedWords: string[];
+  recentWords: string[];
+  records: Record<string, WordRecord>;
+  history: Array<{
+    at: string;
+    word: string;
+    correct: boolean;
+    category: WordCategory;
+  }>;
 };
 
 export type Zone = {

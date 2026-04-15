@@ -4,9 +4,21 @@ import { decorateWorld } from './game/decor';
 import { createGuide, createPlayer } from './game/characters';
 import { challengePool, zoneToActivity } from './game/activities';
 import { speak, beep } from './game/audio';
-import { createUI, renderHud, rewardPopup, setFeedback, showChallenge, syncSettingsUI } from './game/ui';
-import { defaultProgress, defaultSettings, loadJson, SETTINGS_KEY, STORAGE_KEY, save, award } from './game/state';
-import type { Challenge, Settings, ChildProgress, Zone } from './game/types';
+import {
+  bindJournalTabs,
+  createUI,
+  renderHud,
+  renderJournal,
+  renderTeacherWordStats,
+  rewardPopup,
+  setFeedback,
+  showChallenge,
+  showReadingCompletion,
+  syncSettingsUI
+} from './game/ui';
+import { defaultProgress, defaultSettings, loadJson, loadJournal, SETTINGS_KEY, STORAGE_KEY, save, award } from './game/state';
+import { touchWord } from './game/journal';
+import type { Challenge, Settings, ChildProgress, Zone, WordCategory } from './game/types';
 
 const app = document.getElementById('app');
 if (!app) throw new Error('Missing app element');
@@ -27,9 +39,7 @@ scene.fog = new THREE.Fog('#a7d7ff', 28, 78);
 const camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.1, 240);
 camera.position.set(0, 16, 20);
 
-const hemi = new THREE.HemisphereLight('#fff4d8', '#9acb9f', 0.6);
-scene.add(hemi);
-
+scene.add(new THREE.HemisphereLight('#fff4d8', '#9acb9f', 0.6));
 const sun = new THREE.DirectionalLight('#ffe8bf', 1.2);
 sun.position.set(24, 40, 16);
 sun.castShadow = true;
@@ -39,9 +49,7 @@ sun.shadow.camera.right = 40;
 sun.shadow.camera.top = 40;
 sun.shadow.camera.bottom = -40;
 scene.add(sun);
-
-const fill = new THREE.AmbientLight('#ffcfa3', 0.22);
-scene.add(fill);
+scene.add(new THREE.AmbientLight('#ffcfa3', 0.22));
 
 const terrain = buildTerrain(scene);
 const zones = decorateWorld(scene, terrain);
@@ -50,17 +58,26 @@ const guide = createGuide(scene, terrain);
 
 let progress = loadJson<ChildProgress>(STORAGE_KEY, defaultProgress);
 let settings = loadJson<Settings>(SETTINGS_KEY, defaultSettings);
+let journal = loadJournal();
 const collectedLetters = new Set<string>();
 const lettersToCollect = ['c', 'a', 't', 'm', 'a', 'p', 's'];
 let collectIndex = 0;
 
 syncSettingsUI(ui, settings);
 renderHud(ui, progress, Array.from(collectedLetters));
+renderJournal(ui, journal, 'all');
+renderTeacherWordStats(ui, journal);
 
 let activeChallenge: Challenge | null = null;
 let gameStarted = false;
 let actionCooldown = 0;
+let journalTab: 'all' | WordCategory = 'all';
 const keys = new Set<string>();
+
+bindJournalTabs(ui, (tab) => {
+  journalTab = tab;
+  renderJournal(ui, journal, journalTab);
+});
 
 const nearbyZone = (): Zone | null => {
   let nearest: Zone | null = null;
@@ -73,24 +90,23 @@ const nearbyZone = (): Zone | null => {
     }
   }
 
-  const guideDist = player.position.distanceTo(guide.position);
-  if (guideDist < best) {
-    return {
-      type: 'npc',
-      marker: guide,
-      anchor: guide.position.clone(),
-      label: 'Guide Friend'
-    };
+  if (player.position.distanceTo(guide.position) < best) {
+    return { type: 'npc', marker: guide, anchor: guide.position.clone(), label: 'Guide Friend' };
   }
-
   return nearest;
 };
 
 const questStatus = () => {
   ui.questText.textContent = `Visit: Letter Garden (${progress.completed.letter ?? 0}), Phonics Bridge (${progress.completed.phonics ?? 0}), Sight Word House (${progress.completed.sight ?? 0}), Spelling Meadow (${progress.completed.spelling ?? 0}).`;
 };
-
 questStatus();
+
+function persistAll() {
+  save(progress, settings, journal);
+  renderHud(ui, progress, Array.from(collectedLetters));
+  renderJournal(ui, journal, journalTab);
+  renderTeacherWordStats(ui, journal);
+}
 
 function openActivity(type: 'letter' | 'phonics' | 'spelling' | 'sight') {
   activeChallenge = challengePool(settings).find((c) => c.type === type) ?? null;
@@ -100,17 +116,20 @@ function openActivity(type: 'letter' | 'phonics' | 'spelling' | 'sight') {
     if (!activeChallenge) return;
     const correct = choice === activeChallenge.answer;
     beep(correct, settings);
+    touchWord(journal, activeChallenge, correct);
 
     if (correct) {
       const result = award(progress, activeChallenge.type);
-      setFeedback(ui, 'Great work! You got it right!');
+      setFeedback(ui, 'Great work! You got it right!', true);
+      showReadingCompletion(ui, activeChallenge, () => speak(activeChallenge!.answer, settings));
       rewardPopup(ui, result.popup, result.burst);
-      save(progress, settings);
-      renderHud(ui, progress, Array.from(collectedLetters));
       questStatus();
     } else {
-      setFeedback(ui, 'Nice try! Listen and try once more.');
+      setFeedback(ui, 'Nice try! Listen and try once more.', false);
+      rewardPopup(ui, `Keep practicing: ${activeChallenge.answer.toUpperCase()}`, 8);
     }
+
+    persistAll();
   });
 
   speak(activeChallenge.voice, settings);
@@ -120,10 +139,7 @@ function buildBlock() {
   const gx = Math.round(player.position.x + 1.5);
   const gz = Math.round(player.position.z + 0.5);
   const gy = terrain.topHeightAt(gx, gz) + 1.5;
-  const block = new THREE.Mesh(
-    new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshLambertMaterial({ color: '#8b78f8' })
-  );
+  const block = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: '#8b78f8' }));
   block.position.set(gx, gy, gz);
   block.castShadow = true;
   scene.add(block);
@@ -135,10 +151,7 @@ function interact() {
   if (!zone) return;
 
   const activityType = zoneToActivity(zone.type);
-  if (activityType) {
-    openActivity(activityType);
-    return;
-  }
+  if (activityType) return openActivity(activityType);
 
   if (zone.type === 'collect') {
     const next = lettersToCollect[collectIndex % lettersToCollect.length];
@@ -150,14 +163,8 @@ function interact() {
     return;
   }
 
-  if (zone.type === 'build') {
-    buildBlock();
-    return;
-  }
-
-  if (zone.type === 'npc') {
-    speak('Hi explorer! Follow the glowing stations to practice reading and earn stars.', settings);
-  }
+  if (zone.type === 'build') return buildBlock();
+  if (zone.type === 'npc') speak('Hi explorer! Follow glowing stations to learn words.', settings);
 }
 
 ui.startButton.onclick = () => {
@@ -169,19 +176,19 @@ ui.startButton.onclick = () => {
 ui.toggleTeacher.onclick = () => ui.teacherBody.classList.toggle('hidden');
 ui.voiceSetting.onchange = () => {
   settings.voicePrompts = ui.voiceSetting.checked;
-  save(progress, settings);
+  persistAll();
 };
 ui.difficultySetting.onchange = () => {
   settings.activityDifficulty = ui.difficultySetting.value as Settings['activityDifficulty'];
-  save(progress, settings);
+  persistAll();
 };
 ui.volumeSetting.onchange = () => {
   settings.musicVolume = Number(ui.volumeSetting.value);
-  save(progress, settings);
+  persistAll();
 };
 ui.sessionSetting.onchange = () => {
   settings.sessionMinutes = Number(ui.sessionSetting.value);
-  save(progress, settings);
+  persistAll();
 };
 
 window.addEventListener('keydown', (e) => keys.add(e.key.toLowerCase()));
@@ -198,7 +205,6 @@ function animateMarkers(time: number) {
     zone.marker.position.y = zone.anchor.y + Math.sin(time * 0.003 + phase) * 0.22;
     zone.marker.rotation.y += 0.009;
   });
-
   const gMarker = guide.userData.marker as THREE.Mesh;
   guide.position.y = terrain.topHeightAt(0, 4) + 0.8 + Math.sin(time * 0.004) * 0.15;
   gMarker.rotation.z += 0.03;
@@ -215,7 +221,6 @@ function movePlayer(dt: number) {
     dir.normalize().multiplyScalar(5 * dt);
     player.position.x = THREE.MathUtils.clamp(player.position.x + dir.x, -terrain.worldRadius + 2, terrain.worldRadius - 2);
     player.position.z = THREE.MathUtils.clamp(player.position.z + dir.z, -terrain.worldRadius + 2, terrain.worldRadius - 2);
-
     const top = terrain.topHeightAt(Math.round(player.position.x), Math.round(player.position.z));
     player.position.y = top + 0.6 + Math.sin(performance.now() * 0.015) * 0.03;
     player.rotation.y = Math.atan2(dir.x, dir.z);
@@ -239,12 +244,10 @@ let prev = performance.now();
 function loop(now: number) {
   const dt = Math.min((now - prev) / 1000, 0.033);
   prev = now;
-
   if (gameStarted) {
     movePlayer(dt);
     animateMarkers(now);
   }
-
   renderer.render(scene, camera);
   requestAnimationFrame(loop);
 }

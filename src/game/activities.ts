@@ -1,16 +1,10 @@
 import type { ActivityType, Challenge, Settings } from './types';
 
 export function challengePool(settings: Settings): Challenge[] {
-  const easySpelling = [
-    { target: 'cat', choices: ['cat', 'cta', 'act'] },
-    { target: 'map', choices: ['map', 'amp', 'pam'] }
-  ];
-  const normalSpelling = [
-    { target: 'sun', choices: ['sun', 'uns', 'snu'] },
-    { target: 'dog', choices: ['dog', 'god', 'dgo'] }
-  ];
-
-  const spelling = settings.activityDifficulty === 'easy' ? easySpelling[0] : normalSpelling[0];
+  const spelling =
+    settings.activityDifficulty === 'easy'
+      ? { target: 'cat', choices: ['cat', 'cta', 'act'], segmentation: 'c-a-t', sentence: 'The cat naps.' }
+      : { target: 'sun', choices: ['sun', 'uns', 'snu'], segmentation: 's-u-n', sentence: 'The sun is warm.' };
 
   return [
     {
@@ -18,28 +12,40 @@ export function challengePool(settings: Settings): Challenge[] {
       prompt: 'Letter Garden: tap the letter that matches the sound /m/.',
       choices: ['m', 's', 't'],
       answer: 'm',
-      voice: 'Welcome to Letter Garden. Find letter m.'
+      voice: 'Welcome to Letter Garden. Find letter m.',
+      category: 'phonics',
+      segmentation: '/m/',
+      sentence: 'M is for moon.'
     },
     {
       type: 'phonics',
       prompt: 'Phonics Bridge: which word starts with /s/?',
       choices: ['sun', 'cat', 'pig'],
       answer: 'sun',
-      voice: 'Cross the bridge by choosing the word that begins with sss.'
+      voice: 'Cross the bridge by choosing the word that begins with sss.',
+      category: 'phonics',
+      segmentation: '/s/-/u/-/n/',
+      sentence: 'Sun is bright.'
     },
     {
       type: 'spelling',
       prompt: `Spelling Meadow: spell ${spelling.target}.`,
       choices: spelling.choices,
       answer: spelling.target,
-      voice: `Let us spell ${spelling.target}.`
+      voice: `Let us spell ${spelling.target}.`,
+      category: 'cvc',
+      segmentation: spelling.segmentation,
+      sentence: spelling.sentence
     },
     {
       type: 'sight',
       prompt: 'Sight Word House: choose the sight word "the".',
       choices: ['the', 'then', 'they'],
       answer: 'the',
-      voice: 'Find the sight word the.'
+      voice: 'Find the sight word the.',
+      category: 'sight',
+      segmentation: 'the',
+      sentence: 'The dog runs.'
     }
   ];
 }

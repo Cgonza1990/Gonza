@@ -1,4 +1,5 @@
-import type { ChildProgress, Settings, ActivityType } from './types';
+import type { ChildProgress, Settings, ActivityType, ReadingJournal } from './types';
+import { defaultJournal, JOURNAL_KEY } from './journal';
 
 export const STORAGE_KEY = 'starsprout-progress-v2';
 export const SETTINGS_KEY = 'starsprout-settings-v2';
@@ -28,9 +29,14 @@ export function loadJson<T>(key: string, fallback: T): T {
   }
 }
 
-export function save(progress: ChildProgress, settings: Settings) {
+export function loadJournal(): ReadingJournal {
+  return loadJson<ReadingJournal>(JOURNAL_KEY, defaultJournal);
+}
+
+export function save(progress: ChildProgress, settings: Settings, journal: ReadingJournal) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  localStorage.setItem(JOURNAL_KEY, JSON.stringify(journal));
 }
 
 export function award(progress: ChildProgress, type: ActivityType): { popup: string; burst: number } {
