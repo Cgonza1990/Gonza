@@ -1,46 +1,64 @@
-# StarSprout Reading Valley (MVP)
+# StarSprout Reading Valley (Polished MVP)
 
-An **original voxel-based educational game** prototype for kindergarten learners, focused on:
+A colorful original voxel world for kindergarten literacy learning.
 
-- spelling (CVC words)
-- phonics practice
-- sight words
-- early reading confidence
-- letter collection and matching
+## Core learning goals
 
-## Why this stack (fastest prototype)
+- Letter matching
+- Phonics challenges
+- CVC spelling
+- Sight word reading
 
-This MVP uses **Vite + TypeScript + Three.js** because it is one of the fastest ways to ship a browser-playable 3D voxel experience with simple setup and instant hot reload.
+## Tech stack (fast prototype + scalable)
 
-## MVP features implemented
+- **Vite + TypeScript + Three.js**
+- Browser-native speech synthesis for voice prompts
+- Browser localStorage for progress tracking
 
-- 3D colorful voxel world (custom code, original palette and props)
-- Exploration with simple child-friendly controls
-- Building mode (place blocks)
-- Collecting letters
-- Learning activity pads in the world:
-  - letter matching
-  - phonics prompt
-  - CVC spelling
-  - sight word recognition
-- Friendly voice prompts via browser speech synthesis
-- Reward system:
-  - stars
-  - badges
-  - unlockable cosmetic items
-- Parent/Teacher settings:
-  - voice on/off
-  - difficulty
-  - music volume
-  - session length
-- Local progress tracking via browser storage
+## Upgrades in this version
+
+### 1) Terrain and biome variety
+- Procedural voxel terrain with rolling hills, cliffs, curvy paths, ponds, and varied elevation.
+- Block styles include grass, dirt, stone, sand, and water.
+
+### 2) Visual quality
+- Soft atmospheric fog and brighter sky palette.
+- Improved warm ambient and directional lighting with soft shadows.
+- Better third-person camera framing.
+- Subtle bob/hover animations on interactive stations and guide marker.
+
+### 3) Original world art
+- Stylized procedural textures generated from canvas (no copied assets).
+- Voxel trees, bushes, flowers, fences, stepping stones, and a small house.
+- Whimsical child-friendly palette.
+
+### 4) Player and guide
+- More readable cute block avatar.
+- Animated guide character with visible interaction ring.
+
+### 5) UX/UI polish
+- Title screen and Start Adventure flow.
+- Quest panel showing station progress.
+- Improved large child-friendly buttons and readable progress indicators.
+- Reward popup and celebration confetti effect.
+
+### 6) Education zones
+- Distinct themed literacy stations:
+  - **Letter Garden**
+  - **Phonics Bridge**
+  - **Sight Word House**
+  - **Spelling Meadow**
+- Improved right/wrong feedback messaging and reward feedback.
+
+### 7) Code quality
+- Refactored into modular game files (`terrain`, `decor`, `characters`, `activities`, `audio`, `state`, `ui`).
+- Preserved MVP systems while making the codebase easier to extend.
 
 ## Controls
 
 - Move: `Arrow keys` or `WASD`
-- Interact / start activity: `Space` (or `Enter`)
+- Interact/start station: `Space`, `Enter`, or `C`
 - Build block: `B`
-- Collect/interact shortcut: `C`
 
 ## Project structure
 
@@ -50,50 +68,40 @@ This MVP uses **Vite + TypeScript + Three.js** because it is one of the fastest 
 ├── package.json
 ├── tsconfig.json
 ├── src/
-│   ├── main.ts        # game world, gameplay, learning logic, rewards, settings
-│   └── styles.css     # UI + visual style
+│   ├── main.ts
+│   ├── styles.css
+│   └── game/
+│       ├── activities.ts
+│       ├── audio.ts
+│       ├── characters.ts
+│       ├── decor.ts
+│       ├── state.ts
+│       ├── terrain.ts
+│       ├── types.ts
+│       └── ui.ts
 └── README.md
 ```
 
-## Setup instructions
+## Setup
 
 1. Install Node.js 20+.
 2. Install dependencies:
    ```bash
    npm install
    ```
-3. Start development server:
+3. Run dev server:
    ```bash
    npm run dev
    ```
-4. Open the local URL shown by Vite (usually `http://localhost:5173`).
+4. Open the URL shown by Vite (usually `http://localhost:5173`).
 
-Build production bundle:
+Build and preview:
 
 ```bash
 npm run build
-```
-
-Preview production bundle:
-
-```bash
 npm run preview
 ```
 
-## Phase 2 improvements (next)
-
-1. **Touch-first controls** for tablets (big on-screen buttons + tap-to-move).
-2. **Guided reading quests** with short decodable mini-stories.
-3. **More structured progression** (lesson map, mastery thresholds, adaptive difficulty).
-4. **Expanded phonics system** (blends, digraphs, onset/rime segmentation).
-5. **Teacher dashboard export** (CSV/PDF progress report by child profile).
-6. **Accessibility upgrades**:
-   - colorblind-safe palette modes
-   - dyslexia-friendly font toggle
-   - narration speed options.
-7. **Content authoring JSON files** for educators to add words/prompts without code changes.
-8. **Safe multi-profile mode** with PIN-protected parent gate.
-
 ## Originality note
 
-This project intentionally avoids copying existing game branding, UI, mechanics one-to-one, or any third-party assets. All visuals and interactions in this prototype are custom and purpose-built for this educational concept.
+This game is intentionally original and does not copy Minecraft branding, textures, UI, assets, or exact visual style.

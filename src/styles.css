@@ -1,6 +1,6 @@
 :root {
-  font-family: 'Trebuchet MS', 'Comic Sans MS', sans-serif;
-  color: #172554;
+  font-family: 'Trebuchet MS', 'Avenir', 'Comic Sans MS', sans-serif;
+  color: #1e3a8a;
 }
 
 html,
@@ -24,79 +24,87 @@ body,
   pointer-events: none;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 10px;
   padding: 12px;
   box-sizing: border-box;
 }
 
-header {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
-  padding: 8px 12px;
-  width: fit-content;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
+header,
+.panel,
+#controlsHint,
+.reward {
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(3px);
+  border-radius: 14px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
 }
 
-header h1 {
+header {
+  padding: 10px 14px;
+  width: fit-content;
+}
+
+header h2 {
   margin: 0;
   font-size: 1.1rem;
 }
 
 #hud {
   display: flex;
-  gap: 8px;
+  gap: 9px;
   font-weight: 700;
-}
-
-#controlsHint {
-  margin-top: 8px;
-  background: rgba(255, 255, 255, 0.86);
-  width: fit-content;
-  border-radius: 999px;
-  padding: 8px 14px;
-  font-size: 0.9rem;
+  margin-top: 4px;
 }
 
 .panel {
-  pointer-events: auto;
-  background: rgba(255, 255, 255, 0.94);
-  border-radius: 14px;
   padding: 10px;
-  margin-bottom: 8px;
-  width: min(430px, 90vw);
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.15);
+  width: min(510px, 94vw);
 }
 
-#activityCard h2,
-#inventoryCard h3 {
+#questPanel {
+  width: min(620px, 96vw);
+}
+
+h3,
+p {
   margin: 0 0 6px;
 }
 
 #choices {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
+}
+
+.choiceButton,
+.bigButton,
+#toggleTeacher {
+  border: none;
+  border-radius: 11px;
+  cursor: pointer;
+  font-weight: 800;
 }
 
 .choiceButton {
-  border: none;
-  border-radius: 10px;
   background: #fde68a;
-  padding: 8px 12px;
-  font-weight: 700;
-  cursor: pointer;
+  color: #1f2937;
+  padding: 8px 14px;
+  font-size: 1rem;
 }
 
 .choiceButton:hover {
   background: #fcd34d;
 }
 
-.hidden {
-  display: none;
+#toggleTeacher {
+  background: #bfdbfe;
+  padding: 8px 10px;
 }
 
-#teacherPanel {
+.teacherPanel {
   align-self: flex-end;
+  width: min(360px, 90vw);
 }
 
 #teacherBody {
@@ -108,22 +116,104 @@ header h1 {
 #teacherBody label {
   display: grid;
   gap: 4px;
-  font-size: 0.88rem;
-}
-
-#toggleTeacher {
-  border: none;
-  border-radius: 8px;
-  background: #c7d2fe;
-  padding: 8px;
-  font-weight: 700;
-  cursor: pointer;
+  font-size: 0.9rem;
 }
 
 #progressPanel {
-  max-height: 120px;
-  overflow: auto;
   background: #f8fafc;
-  padding: 6px;
-  border-radius: 8px;
+  max-height: 140px;
+  overflow: auto;
+  border-radius: 9px;
+  padding: 7px;
+  font-size: 0.75rem;
+}
+
+#controlsHint {
+  align-self: flex-start;
+  padding: 7px 12px;
+  font-size: 0.9rem;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: linear-gradient(rgba(99, 179, 237, 0.6), rgba(45, 125, 231, 0.55));
+  display: grid;
+  place-items: center;
+}
+
+.titleCard {
+  background: #ffffffed;
+  border-radius: 18px;
+  box-shadow: 0 20px 28px rgba(0, 0, 0, 0.2);
+  padding: 22px;
+  width: min(480px, 92vw);
+  text-align: center;
+}
+
+.titleCard h1 {
+  margin: 0 0 8px;
+}
+
+.bigButton {
+  background: linear-gradient(90deg, #fbbf24, #f472b6);
+  color: #122044;
+  padding: 12px 16px;
+  font-size: 1.05rem;
+}
+
+.reward {
+  position: fixed;
+  right: 12px;
+  top: 12px;
+  z-index: 15;
+  padding: 10px 14px;
+  font-weight: 800;
+  color: #7c2d12;
+}
+
+.reward.show {
+  animation: pop 1.6s ease;
+}
+
+.confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.confetti span {
+  position: absolute;
+  top: -10px;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: #f59e0b;
+  animation: drop 1.3s linear forwards;
+}
+
+.confetti span:nth-child(3n) {
+  background: #60a5fa;
+}
+
+.confetti span:nth-child(4n) {
+  background: #34d399;
+}
+
+.hidden {
+  display: none;
+}
+
+@keyframes drop {
+  to {
+    transform: translateY(94vh) rotate(300deg);
+    opacity: 0;
+  }
+}
+
+@keyframes pop {
+  0% { transform: scale(0.7); opacity: 0; }
+  10%, 80% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0; }
 }
